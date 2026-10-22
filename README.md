@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/carlos00012/mi-juego/actions/workflows/ci.yml/badge.svg)](https://github.com/carlos00012/mi-juego/actions/workflows/ci.yml)
 
+**Cryptid Café** es un tycoon de cafetería con colección de críptidos y un misterio narrativo. El plan completo, el alcance y las decisiones de diseño están en el **[GDD](GDD.md)**.
+
 Juego de Roblox con un flujo de trabajo basado en código:
 
 - **Rojo** sincroniza los archivos `.luau` de VS Code con Roblox Studio.
@@ -10,6 +12,11 @@ Juego de Roblox con un flujo de trabajo basado en código:
 - **GitHub Actions** revisa el formato, el lint y compila el lugar en cada push.
 
 Repositorio: <https://github.com/carlos00012/mi-juego>
+
+## Documentación
+
+- **[GDD — Cryptid Café](GDD.md)**: concepto, pilares, sistemas, contenido, economía, pipeline de modelos y roadmap.
+- **[Créditos de assets](CREDITS.md)**: licencias y atribución de modelos, texturas, audio y animaciones de terceros.
 
 ## Requisitos
 
@@ -49,6 +56,9 @@ mi-juego/
 │   ├── client/          → StarterPlayerScripts (LocalScripts)
 │   ├── server/          → ServerScriptService (Scripts)
 │   └── shared/          → ReplicatedStorage.Shared (ModuleScripts)
+│       └── Assets/      → modelos (.rbxm), texturas y audio
+├── GDD.md               → documento de diseño vivo
+├── CREDITS.md           → licencias y créditos de assets
 ├── default.project.json → mapa de src/ a los servicios de Roblox
 ├── rokit.toml           → versiones de las herramientas
 ├── selene.toml          → reglas del linter
@@ -98,6 +108,7 @@ Rojo solo controla lo que está dentro de `src/`. Los objetos que crees a mano e
 Para trabajo en equipo:
 
 - Guarda modelos como `.rbxm` dentro de `src/` y Rojo los insertará en el lugar.
+- Los modelos, texturas y audio se versionan con **Git LFS** (ver `.gitattributes`). El CI descarga LFS antes de compilar.
 - O publica el lugar en Roblox y comparte el acceso.
 - No subas `build/` a Git: el CI lo regenera.
 
