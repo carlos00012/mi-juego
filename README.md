@@ -1,11 +1,13 @@
 # mi-juego
 
+[![CI](https://github.com/carlos00012/mi-juego/actions/workflows/ci.yml/badge.svg)](https://github.com/carlos00012/mi-juego/actions/workflows/ci.yml)
+
 Juego de Roblox con un flujo de trabajo basado en código:
 
 - **Rojo** sincroniza los archivos `.luau` de VS Code con Roblox Studio.
 - **Git + GitHub** guardan el historial y respaldan el proyecto.
 - **Rokit** fija las versiones de Rojo, Selene, StyLua y Wally.
-- **GitHub Actions** (opcional) revisa el formato, el lint y compila el lugar en cada push.
+- **GitHub Actions** revisa el formato, el lint y compila el lugar en cada push.
 
 Repositorio: <https://github.com/carlos00012/mi-juego>
 
@@ -106,17 +108,6 @@ Para trabajo en equipo:
 3. Configura nombre, descripción, ícono y privacidad en la página del juego.
 
 Rojo no publica: sincroniza código y compila el lugar. La publicación se hace desde Studio.
-
-## Activar el CI
-
-El workflow está en `.github/workflows/ci.yml`. GitHub no permite subirlo con un token OAuth sin el permiso `workflow`, así que se activa aparte:
-
-```powershell
-gh auth refresh -h github.com -s workflow
-git add .github/workflows/ci.yml
-git commit -m "ci: activar GitHub Actions"
-git push
-```
 
 ## Problemas comunes
 
