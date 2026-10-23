@@ -23,3 +23,6 @@ sourcemap.json
 .DS_Store
 Thumbs.db
 *.log
+
+# Grafo de conocimiento generado por graphify
+/graphify-out/

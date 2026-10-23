@@ -6,9 +6,9 @@
 |---|---|
 | **Título de trabajo** | Cryptid Café |
 | **Nombre interno** | Café de Críptidos |
-| **Versión del documento** | 0.2 |
+| **Versión del documento** | 0.3 |
 | **Fecha** | 22 de octubre de 2026 |
-| **Estado** | Preproducción |
+| **Estado** | MVP implementado (prototipo jugable) |
 | **Plataforma** | Roblox (móvil primero, PC y consola) |
 | **Motor** | Roblox Studio + Rojo 7.7.1 + Luau |
 | **Repositorio** | <https://github.com/carlos00012/mi-juego> |
@@ -413,7 +413,7 @@ offlineEarnings = floor(avgIncomePerMinute * hoursAway * 0.4)
 
 | Versión | Biomas | Críptidos | Recetas | Mejoras | Historia | Estado |
 |---|---:|---:|---:|---:|---:|---|
-| **MVP** | 1 | 3 | 6 | 6 | 5 misiones | Pendiente |
+| **MVP** | 1 | 3 | 6 | 6 | 0 (post-MVP) | Implementado (prototipo) |
 | **1.0** | 1 | 8 | 16 | 18 | 20 misiones | Diseño |
 | **1.1** | 2 | 14 | 24 | 24 | 30 misiones | Idea |
 | **1.2** | 3 | 20 | 32 | 30 | 40 misiones | Idea |
@@ -460,6 +460,27 @@ Cada receta tiene: nombre, ingredientes, estación, tiempo, valor base, calidad 
 | **Laboratorio** | Mezclador de cebos, Analizador, Telescopio |
 
 Cada una tiene 3 niveles en 1.0 y 5 a largo plazo. Los efectos son legibles: `+1 asiento`, `−15% tiempo`, `+10% propina`, `+1 receta`.
+
+### 8.6 Alcance real del MVP implementado (v0.3)
+
+| Sistema | Implementación actual |
+|---|---|
+| **Parcelas** | 6 parcelas fijas; 1 cafetería por jugador; el jugador es teletransportado a su parcela |
+| **Cafetería** | Preconstruida por código; sin modo construcción en el MVP |
+| **Estaciones** | 3: `Stove`, `Prep` y `Coffee`; cada una con `ProximityPrompt` |
+| **Recetas** | 6: Luna Latte, Forest Floor Pancakes, Carrot Cloud Cake, Berry Beast Smoothie, Cosmic Cocoa y Mushroom Melt |
+| **Críptidos** | 3: Bigfoot, Jackalope y Mothman |
+| **Mesas** | 3 base + hasta 3 extra con la mejora `extra_table` |
+| **Mejoras** | 6: `extra_table`, `better_stove`, `premium_beans`, `cozy_lanterns`, `menu_board`, `flyer_campaign` |
+| **Bucle** | El jugador cocina, recoge el plato, lo lleva a la mesa y lo sirve; el cliente paga, deja propina y se va |
+| **Clientes** | Modelo de partes sin `Humanoid`; `Root` anclado y resto de partes con `WeldConstraint` |
+| **Guardado** | DataStore con fallback a memoria si API Services no está disponible; autosave y guardado al salir |
+| **UI** | Construida por código: HUD, tienda, códice y avisos; sin assets externos todavía |
+| **Autoridad** | Toda la lógica económica y de pedidos vive en el servidor; el cliente solo envía intención de compra |
+| **Interacción** | `ProximityPrompt` para estaciones, platos y mesas |
+| **Fuera del MVP** | Modo construcción, misiones, prestigio, social, eventos, analytics y monetización |
+
+**Criterio de aceptación del MVP:** un jugador puede entrar, recibir su cafetería, cocinar una receta, servirla a un críptido, cobrar Ecto y comprar una mejora sin errores de runtime.
 
 ---
 
@@ -598,54 +619,54 @@ src/shared/Assets/
 ```
 src/
 ├── client/
-│   ├── Bootstrap.client.luau
-│   └── Controllers/
-│       ├── BuildController.luau
-│       ├── CameraController.luau
-│       ├── InteractionController.luau
-│       ├── UIController.luau
-│       └── EffectsController.luau
+│   ├── init.client.luau
+│   ├── Controllers/
+│   │   └── GameController.luau
+│   └── UI/
+│       ├── HUD.luau
+│       ├── Shop.luau
+│       ├── Codex.luau
+│       ├── Components.luau
+│       └── Theme.luau
 ├── server/
-│   ├── Bootstrap.server.luau
-│   └── Services/
-│       ├── DataService.luau
-│       ├── PlotService.luau
-│       ├── EconomyService.luau
-│       ├── OrderService.luau
-│       ├── CustomerService.luau
-│       ├── BuildService.luau
-│       ├── CodexService.luau
-│       ├── QuestService.luau
-│       ├── PrestigeService.luau
-│       ├── SocialService.luau
-│       └── AnalyticsService.luau
+│   ├── init.server.luau
+│   ├── Services/
+│   │   ├── DataService.luau
+│   │   ├── PlotService.luau
+│   │   ├── CustomerService.luau
+│   │   ├── UpgradeService.luau
+│   │   ├── RemoteService.luau
+│   │   └── SyncService.luau
+│   └── World/
+│       ├── WorldBuilder.luau
+│       ├── CafeBuilder.luau
+│       └── CustomerModelBuilder.luau
 └── shared/
     ├── Config/
     │   ├── GameConfig.luau
     │   ├── Recipes.luau
     │   ├── Cryptids.luau
-    │   ├── Upgrades.luau
-    │   └── Biomes.luau
+    │   └── Upgrades.luau
     ├── Types.luau
-    ├── Util/
-    └── Assets/
+    └── Util/
+        └── UpgradeUtil.luau
 ```
 
 ### 11.2 Responsabilidades
 
-| Servicio | Responsabilidad |
+| Módulo | Responsabilidad |
 |---|---|
-| `DataService` | Perfil, carga/guardado, sesión, migraciones |
-| `PlotService` | Asignar parcela, liberar, visitas |
-| `EconomyService` | Ecto, transacciones, validación |
-| `OrderService` | Pedidos, recetas, calidad, pagos |
-| `CustomerService` | Spawn, IA, colas, satisfacción |
-| `BuildService` | Colocación, rejilla, límites, guardado |
-| `CodexService` | Descubrimientos, variantes, recompensas |
-| `QuestService` | Diarias, semanales, progreso |
-| `PrestigeService` | Reset, multiplicador, recompensas |
-| `SocialService` | Visitas, regalos, Night Rush |
-| `AnalyticsService` | Eventos y métricas |
+| `DataService` | Perfil, DataStore con fallback, XP/Ecto y leaderstats |
+| `PlotService` | Asignar/liberar parcelas, mesas extra y prompts |
+| `CustomerService` | Spawn, pedidos, cocina, servicio, propinas y salida |
+| `UpgradeService` | Compra, validación y aplicación de mejoras |
+| `RemoteService` | Creación de remotes y contrato cliente-servidor |
+| `SyncService` | Sincronización de perfil y avisos al cliente |
+| `WorldBuilder` | Plaza, spawn, decoración y límites del mundo |
+| `CafeBuilder` | Cafetería preconstruida, estaciones, mesas y carteles |
+| `CustomerModelBuilder` | Modelo de críptido con `Root` y `WeldConstraint` |
+| `GameController` | Conexión de remotes, perfil y UI en el cliente |
+| `HUD` / `Shop` / `Codex` | Interfaz de juego, tienda y códice |
 
 ### 11.3 Esquema de datos
 
@@ -678,16 +699,12 @@ export type Profile = {
 
 | Remote | Tipo | Validación |
 |---|---|---|
-| `PlaceFurniture` | Event | Propietario, zona, rejilla, límite, coste |
-| `RemoveFurniture` | Event | Propietario, índice |
-| `ServeOrder` | Event | Pedido activo, distancia, tiempo |
-| `ClaimOffline` | Function | Última conexión, tope |
-| `Prestige` | Event | Capítulo, coste, no duplicado |
-| `ClaimQuest` | Event | Progreso real |
-| `VisitPlot` | Event | Amistad, parcela, límite |
-| `GiftCard` | Event | Duplicado, 1/día |
+| `ProfileSync` | Event | Solo servidor → cliente; perfil saneado |
+| `Notify` | Event | Solo servidor → cliente; mensajes cortos |
+| `PurchaseUpgrade` | Function | Propietario, mejora existente, nivel máximo, Ecto suficiente |
+| `RequestProfile` | Function | Devuelve el perfil actual del jugador autenticado |
 
-**Regla:** el servidor recalcula todo. El cliente solo envía intenciones.
+**Regla:** el servidor recalcula todo. El cliente solo envía intenciones. En el MVP no hay remotes de construcción, pedidos ni prestigio porque esos sistemas aún no existen.
 
 ### 11.5 Analítica
 
@@ -714,9 +731,26 @@ Eventos mínimos: `session_start`, `tutorial_step`, `first_order`, `first_upgrad
 - Presupuesto de parts por parcela: 250 en 1.0, 400 con mejoras.
 - Medir en móvil de gama media antes de cada release.
 
+### 11.7 Decisiones de implementación del MVP
+
+| Decisión | Motivo |
+|---|---|
+| **Servidor autoritativo** | Evita duplicación de Ecto y trampas; el cliente solo pide comprar |
+| **Una cafetería por jugador** | El MVP valida el bucle sin construir un sistema de visitas |
+| **Cafetería preconstruida por código** | Elimina el modo construcción y permite probar el bucle antes de modelar props |
+| **`ProximityPrompt`** | Interacción nativa, accesible en móvil y sin UI extra |
+| **Clientes sin `Humanoid`** | Menos coste de simulación; `Root` anclado + `WeldConstraint` para el cuerpo |
+| **DataStore con fallback a memoria** | Permite probar en Studio sin publicar; el fallback no persiste entre sesiones |
+| **UI por código** | Cero dependencias de assets externos; fácil de iterar y localizar |
+| **Sin misiones, prestigio, social ni monetización** | Se posponen a 1.0 para no inflar el MVP |
+
+**Deuda técnica conocida:** el modelo de cliente es un placeholder de partes; la UI no tiene arte final; el fallback de memoria no sustituye a un DataStore real; falta telemetría.
+
 ---
 
 ## 12. UI/UX y onboarding
+
+> **Estado MVP (v0.3):** existen HUD, tienda, códice y avisos. El modo construcción, las misiones, el temporizador de noche y el botón de build son objetivos de 1.0, no del MVP.
 
 **HUD:** Ecto, nivel, reputación, temporizador de noche, misión activa, botón de build.
 
@@ -774,7 +808,7 @@ Todo debe estar en módulos de configuración, no hardcodeado.
 | Fase | Duración | Entregable | Criterio de aceptación |
 |---|---:|---|---|
 | **0. Preproducción** | 1 semana | GDD, repo, blockout, auditoría de assets | El GDD está aprobado y el repo compila |
-| **1. MVP** | 2 semanas | 1 parcela, 3 estaciones, 3 críptidos, 6 mejoras, guardado | Se puede jugar una noche completa y volver |
+| **1. MVP** | 2 semanas | 6 parcelas, 3 estaciones, 3 críptidos, 6 recetas, 6 mejoras, guardado | Implementado como prototipo; falta playtest con jugador real |
 | **2. Vertical slice** | 3 semanas | Tutorial, 6 críptidos, 12 mejoras, UI, SFX, códice | Un jugador nuevo completa el tutorial sin ayuda |
 | **3. Contenido 1.0** | 4 semanas | Mistwood, 8 críptidos, 16 recetas, 18 mejoras, 20 misiones, prestigio | 30 min de juego con progresión clara |
 | **4. Pulido y soft launch** | 3 semanas | Analytics, balance, eventos, optimización móvil | D1 ≥ 20% en soft launch |
@@ -806,8 +840,8 @@ Todo debe estar en módulos de configuración, no hardcodeado.
 |---|---|---|
 | Nombre final | Cryptid Café / Moth & Mocha / The Lantern | Antes del marketing |
 | Estilo visual | Low-poly plano / clay / pixel 3D | Vertical slice |
-| Tamaño de servidor | 4 / 6 / 8 jugadores | MVP |
-| Guardado | ProfileStore / DataStore custom | MVP |
+| Tamaño de servidor | 6 jugadores (MVP); evaluar 8 en 1.0 | Resuelto para MVP |
+| Guardado | DataStore custom con fallback (MVP); ProfileStore en 1.0 | Resuelto para MVP |
 | Precio del 2× Ecto | 199 / 299 / 399 R$ | Soft launch |
 | Idioma inicial | Inglés / inglés + español | Vertical slice |
 | Música | Compositor / licencia | Vertical slice |
@@ -820,6 +854,7 @@ Todo debe estar en módulos de configuración, no hardcodeado.
 |---|---|---|---|
 | 22/10/2026 | 0.1 | Borrador inicial: concepto, investigación, bucles, economía, contenido y roadmap | carlos00012 |
 | 22/10/2026 | 0.2 | Se añade la política de reutilizar modelos prehechos de Studio/Toolbox, auditoría, licencias y créditos; se detalla el pipeline de modelos y LFS | carlos00012 |
+| 22/10/2026 | 0.3 | Se registra el MVP implementado: 6 parcelas, 3 estaciones, 3 críptidos, 6 recetas, 6 mejoras, guardado con fallback, UI por código y decisiones técnicas; se actualiza la estructura Rojo y los remotes reales | carlos00012 |
 
 **Plantilla para nuevas filas:**
 

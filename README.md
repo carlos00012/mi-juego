@@ -57,6 +57,8 @@ mi-juego/
 │   ├── server/          → ServerScriptService (Scripts)
 │   └── shared/          → ReplicatedStorage.Shared (ModuleScripts)
 │       └── Assets/      → modelos (.rbxm), texturas y audio
+├── tests/               → smoke tests ejecutables con run-in-roblox
+├── graphify-out/        → grafo de conocimiento local (generado)
 ├── GDD.md               → documento de diseño vivo
 ├── CREDITS.md           → licencias y créditos de assets
 ├── default.project.json → mapa de src/ a los servicios de Roblox
@@ -85,6 +87,49 @@ selene src                          # buscar errores y malas prácticas
 stylua src                          # formatear el código
 rokit install                       # reinstalar las herramientas
 ```
+
+## Probar el MVP
+
+El MVP ya es jugable: 6 parcelas, 3 estaciones, 3 críptidos, 6 recetas, 6 mejoras y guardado con fallback.
+
+```powershell
+# 1. Generar el lugar jugable
+rojo build default.project.json -o build/mi-juego.rbxlx
+
+# 2. Abrir build/mi-juego.rbxlx en Roblox Studio y pulsar Play
+```
+
+Qué comprobar en Studio:
+
+1. El jugador aparece en la plaza de Mistwood y es teletransportado a su cafetería.
+2. Cada parcela tiene estaciones `Stove`, `Prep` y `Coffee`, 3 mesas y un cartel de menú.
+3. Al interactuar con una estación con `ProximityPrompt` empieza a cocinarse un plato.
+4. Al recoger el plato, el jugador lo lleva en la mano; al interactuar con una mesa ocupada, lo sirve.
+5. El cliente paga Ecto, deja propina si el plato es su favorito y se va.
+6. La tienda permite comprar `extra_table`, `better_stove`, `premium_beans`, `cozy_lanterns`, `menu_board` y `flyer_campaign`.
+7. El HUD y el códice muestran Ecto, nivel, XP y críptidos vistos.
+
+> En Studio sin **API Services** activado, `DataService` avisa y usa memoria temporal: el progreso no persiste entre sesiones. Para probar el guardado real, publica el lugar o activa API Services en la configuración del lugar.
+
+### Smoke tests automáticos
+
+Los tests se ejecutan con `run-in-roblox` sobre el lugar compilado:
+
+```powershell
+$RIR = "$env:USERPROFILE\.rokit\tool-storage\rojo-rbx\run-in-roblox\0.3.0\run-in-roblox.exe"
+
+& $RIR --place build/mi-juego.rbxlx --script tests/studio_smoke.luau
+& $RIR --place build/mi-juego.rbxlx --script tests/studio_run_smoke.luau
+& $RIR --place build/mi-juego.rbxlx --script tests/studio_customer_model_smoke.luau
+```
+
+Resultados esperados: `SMOKE_OK`, `RUN_SMOKE_OK` y `CUSTOMER_MODEL_SMOKE_OK`.
+
+`tests/studio_player_smoke.luau` es un intento de simular un jugador; Studio bloquea `CreateLocalPlayer` fuera de Play Solo, así que no se usa en CI.
+
+### Grafo del proyecto
+
+`graphify-out/` contiene el grafo de conocimiento generado con graphify (`graph.html`, `graph.json` y `GRAPH_REPORT.md`). Es un artefacto local de análisis; se puede regenerar con `graphify .` y no es necesario para jugar.
 
 ## Flujo diario
 
